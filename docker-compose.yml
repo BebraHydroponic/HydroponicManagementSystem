@@ -1,0 +1,31 @@
+services:
+  php:
+    build:
+      context: ./php
+    volumes:
+      - ./backend:/var/www/html
+    working_dir: /var/www/html
+    ports:
+      - "9000:9000"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: greenb
+      POSTGRES_USER: greenb
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+
+volumes:
+  db_data:

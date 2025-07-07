@@ -1,0 +1,276 @@
+# config/validator/validation.yaml
+
+App\Entity\AppUser:
+  properties:
+    username:
+      - NotBlank: ~
+      - Length:
+          max: 180
+    email:
+      - NotBlank: ~
+      - Email: ~
+      - Length:
+          max: 180
+    password:
+      - NotBlank: ~
+      - Length:
+          min: 6
+          max: 255
+    roles:
+      - NotNull: ~
+
+App\Entity\AuditLog:
+  properties:
+    action:
+      - NotBlank: ~
+      - Length:
+          max: 100
+    performedAt:
+      - NotNull: ~
+      - Type:
+          type: DateTimeInterface
+    user:
+      - NotNull: ~
+
+App\Entity\Batch:
+  properties:
+    name:
+      - NotBlank: ~
+      - Length:
+          max: 100
+    sowDate:
+      - NotNull: ~
+      - Type:
+          type: DateTimeInterface
+    closed:
+      - NotNull: ~
+
+App\Entity\HarvestEvent:
+  properties:
+    batch:
+      - NotNull:
+          message: "Batch reference is required."
+    trayRow:
+      - NotNull:
+          message: "TrayRow reference is required."
+    harvestedAt:
+      - NotNull:
+          message: "Harvest timestamp is required."
+      - Type:
+          type: DateTimeInterface
+          message: "HarvestedAt must be a valid date/time."
+    quantity:
+      - NotNull:
+          message: "Quantity is required."
+      - GreaterThanOrEqual:
+          value: 0
+          message: "Quantity cannot be negative."
+
+App\Entity\InventoryLot:
+  properties:
+    productName:
+      - NotBlank: ~
+      - Length:
+          max: 100
+    quantity:
+      - NotNull: ~
+      - Type:
+          type: numeric
+    location:
+      - NotBlank: ~
+      - Length:
+          max: 100
+
+App\Entity\InventoryTransaction:
+  properties:
+    createdAt:
+      - NotNull: ~
+      - Type:
+          type: DateTimeInterface
+    quantity:
+      - NotNull: ~
+      - Type:
+          type: numeric
+    inventoryLot:
+      - NotNull: ~
+
+App\Entity\LossEvent:
+  properties:
+    lostAt:
+      - NotNull: ~
+      - Type:
+          type: DateTimeInterface
+    quantity:
+      - NotNull: ~
+      - Type:
+          type: numeric
+    reason:
+      - NotNull: ~
+
+
+App\Entity\LossReason:
+  properties:
+    reason:
+      - NotBlank: ~
+      - Length:
+          max: 100
+
+App\Entity\MaintenanceEvent:
+  properties:
+    scheduledAt:
+      - NotNull:
+          message: "Scheduled date is required."
+      - Type:
+          type: DateTimeInterface
+          message: "Scheduled date must be a valid date/time."
+    description:
+      - NotBlank:
+          message: "Description must not be blank."
+      - Length:
+          max: 255
+          maxMessage: "Description cannot exceed {{ limit }} characters."
+    completed:
+      - NotNull:
+          message: "Completed flag is required."
+      - Type:
+          type: bool
+          message: "Completed must be true or false."
+    completedAt:
+      - Type:
+          type: DateTimeInterface
+          message: "Completion date must be a valid date/time."
+
+App\Entity\MovementEvent:
+  properties:
+    trayRow:
+      - NotNull:
+          message: "TrayRow reference is required."
+    toPlace:
+      - NotNull:
+          message: "Destination place is required."
+    movedAt:
+      - NotNull:
+          message: "Movement timestamp is required."
+      - Type:
+          type: DateTimeInterface
+          message: "MovedAt must be a valid date/time."
+
+App\Entity\Permission:
+  properties:
+    code:
+      - NotBlank:
+          message: "Permission code must not be blank."
+      - Length:
+          max: 100
+          maxMessage: "Permission code cannot exceed {{ limit }} characters."
+    description:
+      - Length:
+          max: 255
+          maxMessage: "Description cannot exceed {{ limit }} characters."
+
+
+App\Entity\Place:
+  properties:
+    name:
+      - NotBlank: ~
+      - Length:
+          max: 100
+    description:
+      - Length:
+          max: 255
+
+App\Entity\ProductWorkflow:
+  properties:
+    stage:
+      - NotBlank: ~
+      - Length:
+          max: 100
+    notes:
+      - Length:
+          max: 255
+
+App\Entity\QualityCode:
+  properties:
+    code:
+      - NotBlank: ~
+      - Length:
+          max: 50
+    description:
+      - Length:
+          max: 255
+
+App\Entity\Role:
+  constraints:
+    - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+        fields: ["code"]
+        message: "Role code must be unique."
+  properties:
+    code:
+      - NotBlank: ~
+      - Length:
+          max: 50
+    description:
+      - NotBlank: ~
+      - Length:
+          max: 255
+
+App\Entity\SeedLot:
+  constraints:
+    - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+        fields: ["lotCode"]
+        message: "Seed lot code must be unique."
+  properties:
+    lotCode:
+      - NotBlank: ~
+      - Length:
+          max: 100
+    variety:
+      - NotBlank: ~
+      - Length:
+          max: 100
+    quantity:
+      - NotNull: ~
+      - Type:
+          type: integer
+      - GreaterThanOrEqual:
+          value: 0
+    expiryDate:
+      - NotNull: ~
+      - Type:
+          type: DateTimeInterface
+
+App\Entity\Supplier:
+  properties:
+    name:
+      - NotBlank: ~
+      - Length:
+          max: 150
+    contact:
+      - Length:
+          max: 255
+
+App\Entity\Tray:
+  constraints:
+    - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+        fields: ["code"]
+        message: "Tray code must be unique."
+  properties:
+    code:
+      - NotBlank: ~
+      - Length:
+          max: 100
+
+App\Entity\TrayRow:
+  properties:
+    batch:
+      - NotNull: ~
+    tray:
+      - NotNull: ~
+    rowIndex:
+      - NotNull: ~
+      - Type:
+          type: integer
+      - GreaterThanOrEqual:
+          value: 0
+    place:
+      - NotNull: ~

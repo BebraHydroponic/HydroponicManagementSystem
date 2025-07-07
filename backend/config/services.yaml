@@ -1,0 +1,68 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    jwt_secret: '%env(JWT_SECRET)%'
+
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+    # Audit
+    
+    App\EventListener\AuditLoggedListener:
+        tags:
+            - { name: kernel.event_listener, event: audit.logged, method: onAuditLogged }
+
+    # User
+    App\EventListener\UserCreatedListener:
+        tags:
+            - { name: kernel.event_listener, event: user.created, method: onUserCreated }
+    App\EventListener\UserLoginListener:
+        tags:
+            - { name: kernel.event_listener, event: user.login_success, method: onUserLogin }
+    App\EventListener\UserLogoutListener:
+        tags:
+            - { name: kernel.event_listener, event: user.logout, method: onUserLogout }
+
+    # Inventory
+    App\EventListener\InventoryLotCreatedListener:
+        tags:
+            - { name: kernel.event_listener, event: inventory.lot_created, method: onInventoryLotCreated }
+    App\EventListener\InventoryTransactionLoggedListener:
+        tags:
+            - { name: kernel.event_listener, event: inventory.transaction_logged, method: onInventoryTransactionLogged }
+
+    # Maintenance
+    App\EventListener\MaintenanceListener:
+        tags:
+            - { name: kernel.event_listener, event: maintenance.scheduled, method: onMaintenanceScheduled }
+            - { name: kernel.event_listener, event: maintenance.completed, method: onMaintenanceCompleted }
+            - { name: kernel.event_listener, event: maintenance.skipped, method: onMaintenanceSkipped }
+
+    # Production Workflow
+    App\EventListener\ProductionWorkflowListener:
+        tags:
+            - { name: kernel.event_listener, event: batch.sown, method: onBatchSown }
+            - { name: kernel.event_listener, event: trayrow.moved, method: onTrayRowMoved }
+            - { name: kernel.event_listener, event: trayrow.retrayed, method: onTrayRowRetrayed }
+            - { name: kernel.event_listener, event: trayrow.split, method: onTrayRowSplit }
+            - { name: kernel.event_listener, event: harvest.logged, method: onHarvestLogged }
+            - { name: kernel.event_listener, event: batch.closed, method: onBatchClosed }
+            - { name: kernel.event_listener, event: batch.destroyed, method: onBatchDestroyed }
+    
+    App\Service\AuthService:
+        arguments:
+            $jwtSecret: '%jwt_secret%'
