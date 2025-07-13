@@ -1,23 +1,36 @@
 # config/validator/validation.yaml
 
 App\Entity\AppUser:
+  constraints:
+    - Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity:
+        fields: ["email"]
+        message: "Email is already registered."
   properties:
     username:
-      - NotBlank: ~
+      - NotBlank:
+          message: "Username is required."
       - Length:
           max: 180
+          maxMessage: "Username cannot exceed {{ limit }} characters."
     email:
-      - NotBlank: ~
-      - Email: ~
+      - NotBlank:
+          message: "Email is required."
+      - Email:
+          message: "Please provide a valid email address."
       - Length:
           max: 180
+          maxMessage: "Email cannot exceed {{ limit }} characters."
     password:
-      - NotBlank: ~
+      - NotBlank:
+          message: "Password is required."
       - Length:
-          min: 6
+          min: 8
+          minMessage: "Password must be at least {{ limit }} characters long."
           max: 255
+          maxMessage: "Password cannot exceed {{ limit }} characters."
     roles:
-      - NotNull: ~
+      - NotNull:
+          message: "Roles cannot be null."
 
 App\Entity\AuditLog:
   properties:
