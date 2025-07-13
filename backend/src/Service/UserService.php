@@ -127,4 +127,38 @@ class UserService
 
         return $newPass;
     }
+
+    /**
+     * Remove a user from the system.
+     *
+     * @throws \InvalidArgumentException when the user does not exist.
+     */
+    public function deleteUser(int $id): void
+    {
+        $user = $this->repo->find($id);
+        if (!$user) {
+            throw new \InvalidArgumentException('User not found.');
+        }
+
+        $this->em->remove($user);
+        $this->em->flush();
+    }
+
+    /**
+     * Retrieve all users.
+     *
+     * @return AppUser[]
+     */
+    public function listUsers(): array
+    {
+        return $this->repo->findAll();
+    }
+
+    /**
+     * Get a single user by id.
+     */
+    public function getUser(int $id): ?AppUser
+    {
+        return $this->repo->find($id);
+    }
 }

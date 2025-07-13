@@ -120,4 +120,50 @@ class UserController extends AbstractController
         }
         return $this->json(['newPassword'=>$new]);
     }
+
+    #[Route('', name: 'user_list', methods: ['GET'])]
+    public function listUsers(): JsonResponse
+    {
+        $users = $this->usersvc->listUsers();
+        $data = array_map(fn($u) => [
+            'id' => $u->getId(),
+            'username' => $u->getUsername(),
+            'email' => $u->getEmail(),
+            'locked' => $u->isLocked(),
+        ], $users);
+        return $this->json($data);
+    }
+
+    #[Route('/{id}', name: 'user_get', methods: ['GET'])]
+    public function getUserById(int $id): JsonResponse
+    {
+        $user = $this->usersvc->getUser($id);
+        if (!$user) {
+            return $this->json(['error' => 'User not found'], 404);
+        }
+
+        return $this->json([
+            'id' => $user->getId(),
+            'username' => $user->getUsername(),
+            'email' => $user->getEmail(),
+            'locked' => $user->isLocked(),
+        ]);
+    }
+
+    #[Route('/{id}', name: 'user_delete', methods: ['DELETE'])]
+    public function deleteUser(int $id): JsonResponse
+    {
+        // Placeholder for future RBAC checks
+        if (!$this->isGranted('ROLE_ADMIN')) {
+            return $this->json(['error' => 'Forbidden'], 403);
+        }
+
+        try {
+            $this->usersvc->deleteUser($id);
+        } catch (\InvalidArgumentException $e) {
+            return $this->json(['error' => $e->getMessage()], 404);
+        }
+
+        return new JsonResponse(null, 204);
+    }
 }
