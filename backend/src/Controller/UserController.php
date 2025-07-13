@@ -3,6 +3,8 @@ namespace App\Controller;
 
 use App\Service\AuthService;
 use App\Service\UserService;
+use Doctrine\DBAL\Exception as DBALException;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -49,6 +51,27 @@ class UserController extends AbstractController
             $this->auth->logout($user);
         }
         return new JsonResponse(null, 204);
+    }
+
+    #[Route('/register', name: 'user_register', methods: ['POST'])]
+    public function register(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        if (!is_array($data)) {
+            return $this->json(['error' => 'Invalid JSON.'], 400);
+        }
+
+        try {
+            $user = $this->usersvc->createUser($data);
+        } catch (UniqueConstraintViolationException $e) {
+            return $this->json(['error' => 'User already exists.'], 409);
+        } catch (\InvalidArgumentException $e) {
+            return $this->json(['error' => $e->getMessage()], 400);
+        } catch (DBALException $e) {
+            return $this->json(['error' => 'Database error.'], 500);
+        }
+
+        return $this->json(['id' => $user->getId()], 201);
     }
 
     #[Route('', name: 'user_create', methods: ['POST'])]
