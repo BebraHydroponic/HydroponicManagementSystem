@@ -3,5 +3,8 @@ namespace App\EventListener;
 
 class UserCreatedListener
 {
-    // No methods or logic yet. Placeholder only.
+    public function onUserCreated($event): void
+    {
+        // Placeholder
+    }
 }
