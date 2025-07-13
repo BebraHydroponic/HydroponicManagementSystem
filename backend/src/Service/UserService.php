@@ -3,6 +3,8 @@ namespace App\Service;
 
 use App\Entity\AppUser;
 use App\Repository\AppUserRepository;
+use Doctrine\DBAL\Exception as DBALException;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -35,7 +37,7 @@ class UserService
         $user = new AppUser();
         $user->setUsername($data['username'] ?? '')
              ->setPassword(password_hash($data['password'] ?? '', PASSWORD_BCRYPT))
-             ->setEmail($data['email'] ?? null)
+             ->setEmail($data['email'] ?? '')
              ->setPhone($data['phone'] ?? null)
              ->setDescription($data['description'] ?? null)
              ->setLocked(false);
@@ -46,8 +48,23 @@ class UserService
             throw new \InvalidArgumentException('User validation failed: ' . (string)$errors);
         }
 
-        $this->em->persist($user);
-        $this->em->flush();
+        if ($this->repo->findOneBy(['email' => $user->getEmail()])) {
+            throw new \InvalidArgumentException('Email already registered.');
+        }
+        if ($this->repo->findOneBy(['username' => $user->getUsername()])) {
+            throw new \InvalidArgumentException('Username already taken.');
+        }
+
+        try {
+            $this->em->persist($user);
+            $this->em->flush();
+        } catch (UniqueConstraintViolationException $e) {
+            $this->logger->error('Unique constraint violation creating user', ['error' => $e->getMessage()]);
+            throw new \InvalidArgumentException('User already exists.');
+        } catch (DBALException $e) {
+            $this->logger->error('Database error creating user', ['error' => $e->getMessage()]);
+            throw new \RuntimeException('Error saving user.');
+        }
 
         $this->dispatcher->dispatch(new class($user) {
             private AppUser $user;
